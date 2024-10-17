@@ -15,6 +15,8 @@ from .serializers import (
 
 
 class UserRegistrationView(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
