@@ -2,19 +2,17 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
-
-
 class Category(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="categorys")
-    name  = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
 
     def __str__(self) -> str:
         return self.name + " - " + self.owner.username
 
 
 class Form(models.Model):
-    owner  = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_forms")
-    title  = models.CharField(max_length=255)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_forms")
+    title = models.CharField(max_length=255)
     position = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self) -> str:
@@ -25,9 +23,10 @@ class Process_Type(models.TextChoices):
     LINEAR = 'linear'
     FREE = 'free'
 
+
 class Process(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_process")
-    title  = models.CharField(max_length=255)
+    title = models.CharField(max_length=255)
     category = models.ForeignKey(
         Category, on_delete=models.CASCADE, null=True,
         related_name="category_process"
