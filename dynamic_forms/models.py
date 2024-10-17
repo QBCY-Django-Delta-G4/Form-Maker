@@ -1,5 +1,10 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
+
+
+
+class User(AbstractUser):
+    pass
 
 
 
@@ -10,7 +15,7 @@ class Category(models.Model):
 
     def __str__(self) -> str:
         return self.name + " - " + self.owner.username
-#hi i love you
+
 
 class Form(models.Model):
     owner  = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_forms")
