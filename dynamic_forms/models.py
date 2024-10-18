@@ -2,11 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
-
-
 class Category(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="categorys")
-    name  = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
 
     def __str__(self) -> str:
         return self.name + " - " + self.owner.username
@@ -32,9 +30,10 @@ class Process_Type(models.TextChoices):
     LINEAR = 'linear'
     FREE = 'free'
 
+
 class Process(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_process")
-    title  = models.CharField(max_length=255)
+    title = models.CharField(max_length=255)
     category = models.ForeignKey(
         Category, on_delete=models.SET_NULL, null=True,
         related_name="category_process"
@@ -65,7 +64,7 @@ class Question(models.Model):
         SELECT = 'select'
         CHECKBOX = 'checkbox'
 
-    form  = models.ForeignKey(Form, on_delete=models.CASCADE, related_name='questions')
+    form = models.ForeignKey(Form, on_delete=models.CASCADE, related_name='questions')
     title = models.TextField()
     type  = models.CharField(max_length=10, choices=Question_Type.choices, default=Question_Type.TEXT)
     extra = models.JSONField()
