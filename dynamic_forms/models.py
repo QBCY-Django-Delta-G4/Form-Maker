@@ -15,6 +15,10 @@ class Category(models.Model):
 class Form(models.Model):
     owner  = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_forms")
     title  = models.CharField(max_length=255)
+    category = models.ForeignKey(
+        Category, on_delete=models.CASCADE, null=True,
+        related_name="category_forms"
+    )
     password = models.CharField(max_length=255, null=True, blank=True)
 
     def is_public(self):
