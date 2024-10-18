@@ -1,9 +1,9 @@
 from django.contrib.auth import authenticate
-
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken  
-
 from .models import User
+
+
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password1 = serializers.CharField(write_only=True, style={'input_type': 'password'})
@@ -15,6 +15,16 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username', 'email', 'first_name', 'last_name', 'password1', 'password2']
+
+    def validate_username(self, value):
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError({'username': 'Username already taken.'})
+        return value
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError({'email': 'Email already taken.'})
+        return value
 
     def validate(self, data):
         if data['password1'] != data['password2']:
@@ -33,28 +43,28 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return user
 
 
-class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField()
-    password = serializers.CharField(write_only=True, style={'input_type': 'password'})
+# class LoginSerializer(serializers.Serializer):
+#     username = serializers.CharField()
+#     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
 
-    def validate(self, data):
-        username = data.get('username')
-        password = data.get('password')
+#     def validate(self, data):
+#         username = data.get('username')
+#         password = data.get('password')
 
-        if username and password:
-            user = authenticate(username=username, password=password)
+#         if username and password:
+#             user = authenticate(username=username, password=password)
 
-            if not user:
-                raise serializers.ValidationError("Invalid login credentials.")
-        else:
-            raise serializers.ValidationError("Must provide both username and password.")
+#             if not user:
+#                 raise serializers.ValidationError("Invalid login credentials.")
+#         else:
+#             raise serializers.ValidationError("Must provide both username and password.")
         
-        data['user'] = user  # Store the authenticated user in the validated data
-        return data
+#         data['user'] = user  # Store the authenticated user in the validated data
+#         return data
 
-    def get_token(self, user):
-        refresh = RefreshToken.for_user(user)  # Generate JWT token for the authenticated user
-        return {
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-        }
+#     def get_token(self, user):
+#         refresh = RefreshToken.for_user(user)  # Generate JWT token for the authenticated user
+#         return {
+#             'refresh': str(refresh),
+#             'access': str(refresh.access_token),
+#         }

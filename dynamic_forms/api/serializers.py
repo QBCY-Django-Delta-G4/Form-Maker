@@ -26,10 +26,10 @@ class QuestionSerializer(serializers.ModelSerializer):
         fields = ['id', 'form', 'title', 'type']
 
 
-class SelectChoiceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SelectChoice
-        fields = ['id', 'select_question', 'title']
+# class SelectChoiceSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = SelectChoice
+#         fields = ['id', 'select_question', 'title']
 
 
 class ResponseSerializer(serializers.ModelSerializer):

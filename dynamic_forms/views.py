@@ -12,35 +12,35 @@ from .serializers import (
     UserRegistrationSerializer, 
     LoginSerializer)
 
+from rest_framework import generics
 
 
-class UserRegistrationView(APIView):
-    permission_classes = [AllowAny]
 
-    def post(self, request):
-        serializer = UserRegistrationSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message": "User created successfully."}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class UserRegistrationView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    permission_classes = (AllowAny,)
+    serializer_class = UserRegistrationSerializer
 
-class LoginView(APIView):
-    permission_classes = [AllowAny]
 
-    def post(self, request):
-        username = request.data.get("username")
-        password = request.data.get("password")
 
-        user = authenticate(username=username, password=password)
 
-        if user is not None:
-            refresh = RefreshToken.for_user(user)
-            access_token = str(refresh.access_token)
-            refresh_token = str(refresh)
+# class LoginView(APIView):
+#     permission_classes = [AllowAny]
 
-            return Response({
-                'access': access_token,
-                'refresh': refresh_token
-            }, status=status.HTTP_200_OK)
+#     def post(self, request):
+#         username = request.data.get("username")
+#         password = request.data.get("password")
 
-        return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+#         user = authenticate(username=username, password=password)
+
+#         if user is not None:
+#             refresh = RefreshToken.for_user(user)
+#             access_token = str(refresh.access_token)
+#             refresh_token = str(refresh)
+
+#             return Response({
+#                 'access': access_token,
+#                 'refresh': refresh_token
+#             }, status=status.HTTP_200_OK)
+
+#         return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)

@@ -23,11 +23,6 @@ class QuestionViewSet(viewsets.ModelViewSet):
     serializer_class = QuestionSerializer
 
 
-class SelectChoiceViewSet(viewsets.ModelViewSet):
-    queryset = SelectChoice.objects.all()
-    serializer_class = SelectChoiceSerializer
-
-
 class ResponseViewSet(viewsets.ModelViewSet):
     queryset = Response.objects.all()
     serializer_class = ResponseSerializer
