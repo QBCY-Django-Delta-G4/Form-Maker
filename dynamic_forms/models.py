@@ -16,7 +16,7 @@ class Form(models.Model):
     owner  = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_forms")
     title  = models.CharField(max_length=255)
     category = models.ForeignKey(
-        Category, on_delete=models.CASCADE, null=True,
+        Category, on_delete=models.SET_NULL, null=True,
         related_name="category_forms"
     )
     password = models.CharField(max_length=255, null=True, blank=True)
@@ -36,7 +36,7 @@ class Process(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_process")
     title  = models.CharField(max_length=255)
     category = models.ForeignKey(
-        Category, on_delete=models.CASCADE, null=True,
+        Category, on_delete=models.SET_NULL, null=True,
         related_name="category_process"
     )
     forms = models.ManyToManyField("Form", related_name="form_process")
