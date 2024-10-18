@@ -11,9 +11,16 @@ class Category(models.Model):
 
 
 class Form(models.Model):
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_forms")
-    title = models.CharField(max_length=255)
-    position = models.PositiveIntegerField(null=True, blank=True)
+    owner  = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_forms")
+    title  = models.CharField(max_length=255)
+    category = models.ForeignKey(
+        Category, on_delete=models.SET_NULL, null=True,
+        related_name="category_forms"
+    )
+    password = models.CharField(max_length=255, null=True, blank=True)
+
+    def is_public(self):
+        return self.password is None or self.password == ""
 
     def __str__(self) -> str:
         return self.title + " - " + self.owner.username
@@ -28,43 +35,42 @@ class Process(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_process")
     title = models.CharField(max_length=255)
     category = models.ForeignKey(
-        Category, on_delete=models.CASCADE, null=True,
+        Category, on_delete=models.SET_NULL, null=True,
         related_name="category_process"
     )
     forms = models.ManyToManyField("Form", related_name="form_process")
     type = models.CharField(max_length=10, choices=Process_Type.choices, default=Process_Type.FREE)
-    is_public = models.BooleanField(default=True)
     password = models.CharField(max_length=255, null=True, blank=True)
+
+    def is_public(self):
+        return self.password is None or self.password == ""
 
     def __str__(self) -> str:
         return self.title + " - " + self.owner.username
 
 
-class Question(models.Model):
-    TEXT = 'text'
-    SELECT = 'select'
-    CHECKBOX = 'checkbox'
+class FormPosition(models.Model):
+    process = models.ForeignKey(Process, on_delete=models.CASCADE)
+    form = models.ForeignKey(Form, on_delete=models.CASCADE)
+    position = models.PositiveIntegerField()
 
-    QUESTION_TYPES = [
-        (TEXT, 'Text'),
-        (SELECT, 'Select'),
-        (CHECKBOX, 'Checkbox'),
-    ]
+    class Meta:
+        unique_together = ('process', 'position')
+
+
+class Question(models.Model):
+    class Question_Type(models.TextChoices):
+        TEXT = 'text'
+        SELECT = 'select'
+        CHECKBOX = 'checkbox'
 
     form = models.ForeignKey(Form, on_delete=models.CASCADE, related_name='questions')
     title = models.TextField()
-    type= models.CharField(max_length=10, choices=QUESTION_TYPES)
+    type  = models.CharField(max_length=10, choices=Question_Type.choices, default=Question_Type.TEXT)
+    extra = models.JSONField()
 
     def __str__(self) -> str:
         return self.title + " - " + self.form.__str__()
-
-
-class SelectChoice(models.Model):
-    select_question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="select_choices")
-    title = models.CharField(max_length=255)
-
-    def __str__(self) -> str:
-        return self.title
 
 
 class Response(models.Model):
@@ -84,11 +90,3 @@ class WatchFormHistory(models.Model):
     def __str__(self) -> str:
         return self.form.title + " - " + self.user.username
 
-
-
-
-
-# class Response2(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_responses2')
-#     form = models.ForeignKey(Form, on_delete=models.CASCADE, related_name='form_responses')
-#     answers = models.JSONField()
