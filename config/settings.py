@@ -1,8 +1,10 @@
 from pathlib import Path
-from decouple import config
+from decouple import Config, RepositoryEnv
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+config = Config(RepositoryEnv(BASE_DIR / 'simple_env.txt'))
 
 SECRET_KEY = config("SECRET_KEY")
 DEBUG = config("DEBUG", cast=bool)
@@ -23,6 +25,7 @@ INSTALLED_APPS = [
     
     
     
+
     'dynamic_forms',
 ]
 
@@ -58,10 +61,20 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': config('DB_ENGINE'),
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST'),
+        'PORT': config('DB_PORT'),
     }
 }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -93,10 +106,16 @@ AUTH_USER_MODEL = 'dynamic_forms.User'
 
 
 
+
+
+
 REST_FRAMEWORK = {
-
-
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+#     'DEFAULT_PERMISSION_CLASSES': [
+#         'rest_framework.permissions.AllowAny',
+#     ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+#       'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
 }

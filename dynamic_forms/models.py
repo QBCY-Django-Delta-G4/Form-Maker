@@ -7,11 +7,9 @@ class User(AbstractUser):
     pass
 
 
-
-
 class Category(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="categorys")
-    name  = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
 
     def __str__(self) -> str:
         return self.name + " - " + self.owner.username
@@ -20,6 +18,10 @@ class Category(models.Model):
 class Form(models.Model):
     owner  = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_forms")
     title  = models.CharField(max_length=255)
+    category = models.ForeignKey(
+        Category, on_delete=models.SET_NULL, null=True,
+        related_name="category_forms"
+    )
     password = models.CharField(max_length=255, null=True, blank=True)
 
     def is_public(self):
@@ -33,11 +35,12 @@ class Process_Type(models.TextChoices):
     LINEAR = 'linear'
     FREE = 'free'
 
+
 class Process(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_process")
-    title  = models.CharField(max_length=255)
+    title = models.CharField(max_length=255)
     category = models.ForeignKey(
-        Category, on_delete=models.CASCADE, null=True,
+        Category, on_delete=models.SET_NULL, null=True,
         related_name="category_process"
     )
     forms = models.ManyToManyField("Form", related_name="form_process")
@@ -66,7 +69,7 @@ class Question(models.Model):
         SELECT = 'select'
         CHECKBOX = 'checkbox'
 
-    form  = models.ForeignKey(Form, on_delete=models.CASCADE, related_name='questions')
+    form = models.ForeignKey(Form, on_delete=models.CASCADE, related_name='questions')
     title = models.TextField()
     type  = models.CharField(max_length=10, choices=Question_Type.choices, default=Question_Type.TEXT)
     extra = models.JSONField()
