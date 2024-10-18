@@ -51,9 +51,9 @@ class Question(models.Model):
         (CHECKBOX, 'Checkbox'),
     ]
 
-    form  = models.ForeignKey(Form, on_delete=models.CASCADE, related_name='questions')
+    form = models.ForeignKey(Form, on_delete=models.CASCADE, related_name='questions')
     title = models.TextField()
-    type  = models.CharField(max_length=10, choices=QUESTION_TYPES)
+    type= models.CharField(max_length=10, choices=QUESTION_TYPES)
 
     def __str__(self) -> str:
         return self.title + " - " + self.form.__str__()
