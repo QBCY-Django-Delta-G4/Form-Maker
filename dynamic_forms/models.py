@@ -32,8 +32,8 @@ class Form(models.Model):
 
 
 class Process_Type(models.TextChoices):
-    LINEAR = 'linear'
     FREE = 'free'
+    LINEAR = 'linear'
 
 
 class Process(models.Model):
