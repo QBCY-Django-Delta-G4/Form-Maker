@@ -5,9 +5,10 @@ from .viewsets import *
 
 
 router = DefaultRouter()
-router.register(r'manage/category', ManageCategoryViewSet, basename='category-manage')
-router.register(r'manage/form', ManageFormViewSet, basename='form-manage')
+router.register(r'manage/category', ManageCategoryViewSet, basename='category')
 router.register(r'manage/process', ManageProcessViewSet, basename='process-manage')
+router.register(r'manage/form', ManageFormViewSet, basename='form')
+router.register(r'manage/question', ManageQuestionViewSet, basename='question')
 router.register(r'process', ProcessListViewSet, basename='process-list')
 
 
