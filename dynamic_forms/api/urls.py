@@ -7,6 +7,7 @@ from .viewsets import *
 router = DefaultRouter()
 router.register(r'forms/manage', ManageFormViewSet, basename='forms-manage')
 router.register(r'process/manage', ManageProcessViewSet, basename='process-manage')
+router.register(r'process', ProcessListViewSet, basename='process-list')
 
 
 urlpatterns = [
