@@ -51,24 +51,15 @@ class ProcessSerializer(serializers.ModelSerializer):
 
 
 
+class QuestionSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Question
+        fields = ['id', 'form', 'title', 'type', 'extra', 'url']
+        read_only_fields = ['form',]
+        extra_kwargs = {
+            'url': {'view_name':'question-detail'}
+        }
 
-
-# class QuestionSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Question
-#         fields = ['id', 'form', 'title', 'type']
-
-
-# class ResponseSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Response
-#         fields = ['id', 'user', 'question', 'answer']
-
-
-# class WatchFormHistorySerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = WatchFormHistory
-#         fields = ['id', 'user', 'form', 'watched_at']
 
 
 
