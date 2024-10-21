@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from dynamic_forms.models import *
 from .serializers import *
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
+from rest_framework import status
 
 
 
@@ -73,3 +75,25 @@ class ManageCategoryViewSet(viewsets.ModelViewSet):
         if self.request.user != instance.owner and not self.request.user.is_staff:
             raise PermissionDenied("You do not have permission to delete this category.")
         instance.delete()
+
+
+class ProcessViewSet(viewsets.ModelViewSet):
+    queryset = Process.objects.all()
+    serializer_class = ProcessSerializer
+
+    @action(detail=True, methods=['post'])
+    def response(self, request, pk=None):
+        process_instance = get_object_or_404(Process, pk=pk)
+
+        password = request.data.get('password')
+
+        if password == process_instance.password or process_instance.password == "":
+            request.session[f'verified_process_{pk}'] = True
+            return Response({"detail": "Moving to questions."}, status=status.HTTP_200_OK)
+        else:
+            return Response({"detail": "Incorrect password."}, status=status.HTTP_403_FORBIDDEN)
+    
+    @action(detail=True, methods=['get'])
+    def show_questions(self, request, pk=None):
+        if not request.session.get(f'verified_process_{pk}', False):
+            return Response({"detail": "Password verification required."}, status=status.HTTP_403_FORBIDDEN)
