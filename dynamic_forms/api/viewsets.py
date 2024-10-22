@@ -1,5 +1,6 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status, mixins
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.decorators import action
 from rest_framework import response
@@ -7,6 +8,27 @@ from dynamic_forms.models import *
 from .serializers import *
 from django.db.models import Q
 
+
+
+
+class ProfileViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(username=self.request.user.username)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 
 
@@ -54,6 +76,7 @@ class ManageFormViewSet(viewsets.ModelViewSet): #CRUD
         return response.Response(serializer.data)
 
 
+
 class ManageProcessViewSet(viewsets.ModelViewSet): #CRUD
     queryset = Process.objects.all()
     serializer_class = ProcessSerializer
@@ -61,6 +84,11 @@ class ManageProcessViewSet(viewsets.ModelViewSet): #CRUD
 
     def get_queryset(self):
         return self.queryset.filter(owner=self.request.user)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
     def perform_create(self, serializer):
         owner = self.request.user
@@ -75,6 +103,16 @@ class ProcessListViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return self.queryset.exclude(owner=self.request.user)
+
+
+
+# class FormPositionListViewSet(mixins.RetrieveModelMixin,viewsets.GenericViewSet):
+#     queryset = FormPosition.objects.all()
+#     serializer_class = FormPositionSerializer
+#     permission_classes = [IsAuthenticated]
+
+#     def get_queryset(self):
+#         return self.queryset.filter(process__owner=self.request.user)
 
 
 
