@@ -157,11 +157,12 @@ class ProcessViewSet(viewsets.ModelViewSet):
 
         if password == process_instance.password or process_instance.password == "":
             request.session[f'verified_process_{pk}'] = True
-            return Response({"detail": "Moving to questions."}, status=status.HTTP_200_OK)
+            return response.Response({"detail": "Moving to questions."}, status=status.HTTP_200_OK)
         else:
-            return Response({"detail": "Incorrect password."}, status=status.HTTP_403_FORBIDDEN)
+            return response.Response({"detail": "Incorrect password."}, status=status.HTTP_403_FORBIDDEN)
     
     @action(detail=True, methods=['get'])
     def show_questions(self, request, pk=None):
         if not request.session.get(f'verified_process_{pk}', False):
-            return Response({"detail": "Password verification required."}, status=status.HTTP_403_FORBIDDEN)
+            return response.Response({"detail": "Password verification required."}, status=status.HTTP_403_FORBIDDEN)
+        return response.Response({}, status=status.HTTP_200_OK)
