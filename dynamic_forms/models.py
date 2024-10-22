@@ -55,7 +55,7 @@ class Process(models.Model):
 
 
 class FormPosition(models.Model):
-    process = models.ForeignKey(Process, on_delete=models.CASCADE)
+    process = models.ForeignKey(Process, on_delete=models.CASCADE, related_name='positions')
     form = models.ForeignKey(Form, on_delete=models.CASCADE)
     position = models.PositiveIntegerField()
 
@@ -79,7 +79,7 @@ class Question(models.Model):
 
 
 class Response(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_responses')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_responses', null=True, blank=True)
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='question_responses')
     answer = models.CharField(max_length=255)
 

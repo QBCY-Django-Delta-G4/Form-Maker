@@ -1,13 +1,50 @@
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404
+from rest_framework import viewsets, status, mixins
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.decorators import action
-from rest_framework.response import Response
+from rest_framework import response
 from dynamic_forms.models import *
 from .serializers import *
 from django.db.models import Q
 
 
+
+
+class ProfileViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(username=self.request.user.username)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
+
+
+class ManageQuestionViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet
+):
+    queryset = Question.objects.all()
+    serializer_class = QuestionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(form__owner=self.request.user)
 
 
 
@@ -23,6 +60,22 @@ class ManageFormViewSet(viewsets.ModelViewSet): #CRUD
         owner = self.request.user
         serializer.save(owner=owner)
 
+    @action(detail=True, methods=['GET','POST'])
+    def questions(self, request, pk=None):
+        if request.method == "POST":
+            serializer = QuestionSerializer(data=request.data, context={'request': request})
+            if serializer.is_valid():
+                form = self.get_object()
+                serializer.save(form=form)
+                return response.Response(serializer.data, status=201)
+            return response.Response(serializer.errors, status=400)
+
+        form = self.get_object()
+        questions = Question.objects.filter(form=form)
+        serializer = QuestionSerializer(questions, many=True, context={'request': request})
+        return response.Response(serializer.data)
+
+
 
 class ManageProcessViewSet(viewsets.ModelViewSet): #CRUD
     queryset = Process.objects.all()
@@ -31,6 +84,11 @@ class ManageProcessViewSet(viewsets.ModelViewSet): #CRUD
 
     def get_queryset(self):
         return self.queryset.filter(owner=self.request.user)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
     def perform_create(self, serializer):
         owner = self.request.user
@@ -45,6 +103,16 @@ class ProcessListViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return self.queryset.exclude(owner=self.request.user)
+
+
+
+# class FormPositionListViewSet(mixins.RetrieveModelMixin,viewsets.GenericViewSet):
+#     queryset = FormPosition.objects.all()
+#     serializer_class = FormPositionSerializer
+#     permission_classes = [IsAuthenticated]
+
+#     def get_queryset(self):
+#         return self.queryset.filter(process__owner=self.request.user)
 
 
 

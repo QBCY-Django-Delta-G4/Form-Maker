@@ -26,25 +26,23 @@ class UserRegistrationView(generics.CreateAPIView):
     serializer_class = UserRegistrationSerializer
 
 
+from django.contrib.auth import login
+class LoginView(APIView):
+    permission_classes = [AllowAny]
 
-# class LoginView(APIView):
-#     permission_classes = [AllowAny]
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
 
-#     def post(self, request):
-#         username = request.data.get("username")
-#         password = request.data.get("password")
-
-#         user = authenticate(username=username, password=password)
-
-#         if user is not None:
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            login(self.request, user)
 #             refresh = RefreshToken.for_user(user)
 #             access_token = str(refresh.access_token)
 #             refresh_token = str(refresh)
 
-#             return Response({
-#                 'access': access_token,
-#                 'refresh': refresh_token
-#             }, status=status.HTTP_200_OK)
+            return Response({
+            }, status=status.HTTP_200_OK)
 
-#         return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
