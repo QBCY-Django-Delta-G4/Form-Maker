@@ -56,6 +56,23 @@ class FormPositionSerializer(serializers.ModelSerializer):
 
 
 
+class ProcessListSerializer(serializers.ModelSerializer):
+    owner_username = serializers.CharField(source='owner.username', read_only=True)
+    category_name = serializers.CharField(source='category.name', read_only=True)
+
+    class Meta:
+        model = Process
+        fields = [
+            'id',
+            'owner_username', 
+            'title',
+            'category_name',
+            'forms', 'type',
+            'is_public',
+        ]
+
+
+
 class ProcessSerializer(serializers.ModelSerializer):
     owner_username = serializers.CharField(source='owner.username', read_only=True)
     category_name = serializers.CharField(source='category.name', read_only=True)
@@ -120,14 +137,14 @@ class ProcessSerializer(serializers.ModelSerializer):
 
 
 
-class QuestionSerializer(serializers.HyperlinkedModelSerializer):
+class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
-        fields = ['id', 'form', 'title', 'type', 'extra', 'url']
+        fields = ['id', 'form', 'title', 'type', 'extra']
         read_only_fields = ['form',]
-        extra_kwargs = {
-            'url': {'view_name':'question-detail'}
-        }
+        # extra_kwargs = {
+        #     'url': {'view_name':'question-detail'}
+        # }
 
 
 

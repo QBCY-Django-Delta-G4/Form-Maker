@@ -72,7 +72,7 @@ class Question(models.Model):
     form = models.ForeignKey(Form, on_delete=models.CASCADE, related_name='questions')
     title = models.TextField()
     type  = models.CharField(max_length=10, choices=Question_Type.choices, default=Question_Type.TEXT)
-    extra = models.JSONField()
+    extra = models.JSONField(blank=True, null=True)
 
     def __str__(self) -> str:
         return self.title + " - " + self.form.__str__()

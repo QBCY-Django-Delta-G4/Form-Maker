@@ -1,3 +1,4 @@
+from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status, mixins
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -7,8 +8,6 @@ from rest_framework import response
 from dynamic_forms.models import *
 from .serializers import *
 from django.db.models import Q
-from django.shortcuts import get_object_or_404
-from rest_framework import status
 
 
 
@@ -100,21 +99,64 @@ class ManageProcessViewSet(viewsets.ModelViewSet): #CRUD
 
 class ProcessListViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Process.objects.all()
-    serializer_class = ProcessSerializer
+    serializer_class = ProcessListSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return self.queryset.exclude(owner=self.request.user)
 
+    @action(detail=True, methods=['GET','POST'], url_path='show_questions(?:/(?P<form_id>[^/.]+))?')
+    def show_questions(self, request:HttpRequest, pk=None, form_id=None):
+        process_instance = self.get_object()
+
+        if request.method == "POST":
+            if not process_instance.is_public():
+                check_password = ""
+                password = request.data.get('password')
+                if password:
+                    check_password = password
+                    request.session[f'verified_process_{pk}'] = password
+                else:
+                    check_password = request.session.get(f'verified_process_{pk}', "")
+                if check_password != process_instance.password:
+                    return response.Response({"detail": "Incorrect password. Submit the correct password!"}, status=status.HTTP_403_FORBIDDEN)
 
 
-# class FormPositionListViewSet(mixins.RetrieveModelMixin,viewsets.GenericViewSet):
-#     queryset = FormPosition.objects.all()
-#     serializer_class = FormPositionSerializer
-#     permission_classes = [IsAuthenticated]
+            # After save answer and validate data
+            if process_instance.type == "linear":
+                curr_pos = request.session.get(f'lst_pos_process_{pk}',0) + 1
+ 
+                print(curr_pos)
+                count_positions = process_instance.positions.all().count()
 
-#     def get_queryset(self):
-#         return self.queryset.filter(process__owner=self.request.user)
+                if count_positions <= curr_pos:
+                    request.session[f'lst_pos_process_{pk}'] = 0
+                    return response.Response({"detail":"process is finished."}, status=status.HTTP_200_OK)
+
+            request.session[f'lst_pos_process_{pk}'] = curr_pos
+            return response.Response({}, status=status.HTTP_200_OK)
+
+
+        if request.method == "GET":
+            if not process_instance.is_public():
+                pass_cash = request.session.get(f'verified_process_{pk}', "")
+                if pass_cash != process_instance.password:
+                    return response.Response({"detail": "Incorrect password. Submit the correct password!"}, status=status.HTTP_403_FORBIDDEN)
+
+            if form_id is None:
+                form_id = 1
+
+            if process_instance.type == "linear":
+                form_id = request.session.get(f'lst_pos_process_{pk}',0) + 1
+            print(form_id)
+
+            curr_position = get_object_or_404(FormPosition,Q(process=process_instance)&Q(position=form_id))
+            form = curr_position.form
+            questions = form.questions.all()
+            serializer = QuestionSerializer(questions, many=True)
+
+            return response.Response(serializer.data, status=status.HTTP_200_OK)
+
 
 
 
