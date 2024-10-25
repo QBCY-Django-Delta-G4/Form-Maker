@@ -56,6 +56,23 @@ class FormPositionSerializer(serializers.ModelSerializer):
 
 
 
+class ProcessListSerializer(serializers.ModelSerializer):
+    owner_username = serializers.CharField(source='owner.username', read_only=True)
+    category_name = serializers.CharField(source='category.name', read_only=True)
+
+    class Meta:
+        model = Process
+        fields = [
+            'id',
+            'owner_username', 
+            'title',
+            'category_name',
+            'forms', 'type',
+            'is_public',
+        ]
+
+
+
 class ProcessSerializer(serializers.ModelSerializer):
     owner_username = serializers.CharField(source='owner.username', read_only=True)
     category_name = serializers.CharField(source='category.name', read_only=True)
@@ -120,14 +137,45 @@ class ProcessSerializer(serializers.ModelSerializer):
 
 
 
-class QuestionSerializer(serializers.HyperlinkedModelSerializer):
+class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
-        fields = ['id', 'form', 'title', 'type', 'extra', 'url']
+        fields = ['id', 'form', 'title', 'type', 'extra']
         read_only_fields = ['form',]
-        extra_kwargs = {
-            'url': {'view_name':'question-detail'}
-        }
+
+    def validate(self, data):
+        if data['type'] == 'select':
+            extra = data['extra']
+            try:
+                choices = extra['choices']
+                if(len(choices) <= 0):
+                    raise serializers.ValidationError({'extra': 'Choices cant empty.'})
+            except:
+                raise serializers.ValidationError({'extra': 'For Select question, you should send choices.'})
+        return data
+
+
+class ResopnseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Response
+        fields = ['id', 'question', 'answer']
+
+    def validate(self, data):
+        question = data['question']
+        answer = data['answer']
+        if question.type == "checkbox":
+            if not answer.lower() in ['true','false']:
+                raise serializers.ValidationError(
+                    {f'question {question.id}': 'This question is a checkbox! send a valid boolean.'}
+                )
+        elif question.type == "select":
+            choices = question.extra['choices']
+            if not answer in choices:
+                raise serializers.ValidationError(
+                    {f'question {question.id}': f'({answer}) for this question is not a valid choice!'}
+                )
+        return data
+
 
 
 

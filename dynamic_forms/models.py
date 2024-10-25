@@ -72,14 +72,17 @@ class Question(models.Model):
     form = models.ForeignKey(Form, on_delete=models.CASCADE, related_name='questions')
     title = models.TextField()
     type  = models.CharField(max_length=10, choices=Question_Type.choices, default=Question_Type.TEXT)
-    extra = models.JSONField()
+    extra = models.JSONField(blank=True, null=True)
 
     def __str__(self) -> str:
         return self.title + " - " + self.form.__str__()
 
 
 class Response(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_responses', null=True, blank=True)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='user_responses',
+        null=True, blank=True
+    )
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='question_responses')
     answer = models.CharField(max_length=255)
 
