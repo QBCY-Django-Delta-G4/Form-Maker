@@ -1,5 +1,5 @@
 SECRET_KEY=_-&!am-3n^hudbh-3_rybv8*^)k%m6^e9hm!+p-w4vauevkrgy
-DEBUG=False
+DEBUG=True
 DB_ENGINE=django.db.backends.postgresql
 DB_NAME=form-maker
 DB_USER=admin
