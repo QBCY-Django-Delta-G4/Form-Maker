@@ -79,7 +79,10 @@ class Question(models.Model):
 
 
 class Response(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_responses', null=True, blank=True)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='user_responses',
+        null=True, blank=True
+    )
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='question_responses')
     answer = models.CharField(max_length=255)
 

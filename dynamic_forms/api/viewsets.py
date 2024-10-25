@@ -61,17 +61,22 @@ class ManageFormViewSet(viewsets.ModelViewSet): #CRUD
         owner = self.request.user
         serializer.save(owner=owner)
 
+    def get_serializer_class(self):
+            if self.action == 'questions':
+                return QuestionSerializer
+            return super().get_serializer_class()
+
     @action(detail=True, methods=['GET','POST'])
     def questions(self, request, pk=None):
+        form = self.get_object()
+
         if request.method == "POST":
             serializer = QuestionSerializer(data=request.data, context={'request': request})
             if serializer.is_valid():
-                form = self.get_object()
                 serializer.save(form=form)
                 return response.Response(serializer.data, status=201)
             return response.Response(serializer.errors, status=400)
 
-        form = self.get_object()
         questions = Question.objects.filter(form=form)
         serializer = QuestionSerializer(questions, many=True, context={'request': request})
         return response.Response(serializer.data)
@@ -105,8 +110,8 @@ class ProcessListViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         return self.queryset.exclude(owner=self.request.user)
 
-    @action(detail=True, methods=['GET','POST'], url_path='show_questions(?:/(?P<form_id>[^/.]+))?')
-    def show_questions(self, request:HttpRequest, pk=None, form_id=None):
+    @action(detail=True, methods=['GET','POST'], url_path='answer(?:/(?P<form_id>[^/.]+))?')
+    def answer(self, request:HttpRequest, pk=None, form_id=None):
         process_instance = self.get_object()
 
         if request.method == "POST":
@@ -119,22 +124,66 @@ class ProcessListViewSet(viewsets.ReadOnlyModelViewSet):
                 else:
                     check_password = request.session.get(f'verified_process_{pk}', "")
                 if check_password != process_instance.password:
-                    return response.Response({"detail": "Incorrect password. Submit the correct password!"}, status=status.HTTP_403_FORBIDDEN)
+                    return response.Response(
+                        {"detail": "Incorrect password. Send the correct password!"}, 
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+
+            responses = request.data.get('response')
+            if responses:
+                curr_positoin = request.session.get(f'lst_pos_process_{pk}',0) + 1
+
+                position_instance = get_object_or_404(
+                    FormPosition,Q(process=process_instance)&Q(position=curr_positoin)
+                )
+                form = position_instance.form
+                questions = form.questions.all()
+
+                questions_id = [x.id for x in questions]
+                responses_id = [_response['id'] for _response in responses]
+                if len(questions_id) != len(responses_id):
+                    return response.Response(
+                        {"error":"response is not valid (len)!"},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                responses_id = list(set(responses_id))
+                if questions_id != responses_id:
+                    return response.Response(
+                        {"error":"response is not valid (set)!"},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+                validate_answer = []
+                for _response in responses:
+                    answer = str(_response['answer'])
+                    question = get_object_or_404(Question,pk=_response['id'])
+
+                    res_serializer = ResopnseSerializer(
+                        data={"question":question.id,"answer":answer}
+                    )
+                    if res_serializer.is_valid(raise_exception=True):
+                        validate_answer.append(res_serializer)
+
+                user = request.user
+                for answer in validate_answer:
+                    answer.save(user=user)
 
 
-            # After save answer and validate data
-            if process_instance.type == "linear":
-                curr_pos = request.session.get(f'lst_pos_process_{pk}',0) + 1
- 
-                print(curr_pos)
-                count_positions = process_instance.positions.all().count()
+                if process_instance.type == "linear":
+                    curr_pos = request.session.get(f'lst_pos_process_{pk}',0) + 1
+                    count_positions = process_instance.positions.all().count()
 
-                if count_positions <= curr_pos:
-                    request.session[f'lst_pos_process_{pk}'] = 0
-                    return response.Response({"detail":"process is finished."}, status=status.HTTP_200_OK)
+                    if count_positions <= curr_pos:
+                        request.session[f'lst_pos_process_{pk}'] = 0
+                        return response.Response({"detail":"process is finished."}, status=status.HTTP_200_OK)
 
-            request.session[f'lst_pos_process_{pk}'] = curr_pos
-            return response.Response({}, status=status.HTTP_200_OK)
+                request.session[f'lst_pos_process_{pk}'] = curr_pos
+                return response.Response(
+                    {"detail": "The answers were successfully registered"}, 
+                    status=status.HTTP_200_OK
+                )
+
+            return response.Response({}, status=status.HTTP_400_BAD_REQUEST)
 
 
         if request.method == "GET":
@@ -156,7 +205,6 @@ class ProcessListViewSet(viewsets.ReadOnlyModelViewSet):
             serializer = QuestionSerializer(questions, many=True)
 
             return response.Response(serializer.data, status=status.HTTP_200_OK)
-
 
 
 
@@ -186,25 +234,3 @@ class ManageCategoryViewSet(viewsets.ModelViewSet):
             raise PermissionDenied("You do not have permission to delete this category.")
         instance.delete()
 
-
-class ProcessViewSet(viewsets.ModelViewSet):
-    queryset = Process.objects.all()
-    serializer_class = ProcessSerializer
-
-    @action(detail=True, methods=['post'])
-    def response(self, request, pk=None):
-        process_instance = get_object_or_404(Process, pk=pk)
-
-        password = request.data.get('password')
-
-        if password == process_instance.password or process_instance.password == "":
-            request.session[f'verified_process_{pk}'] = True
-            return response.Response({"detail": "Moving to questions."}, status=status.HTTP_200_OK)
-        else:
-            return response.Response({"detail": "Incorrect password."}, status=status.HTTP_403_FORBIDDEN)
-    
-    @action(detail=True, methods=['get'])
-    def show_questions(self, request, pk=None):
-        if not request.session.get(f'verified_process_{pk}', False):
-            return response.Response({"detail": "Password verification required."}, status=status.HTTP_403_FORBIDDEN)
-        return response.Response({}, status=status.HTTP_200_OK)
