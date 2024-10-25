@@ -9,10 +9,8 @@ router.register(r'manage/category', ManageCategoryViewSet, basename='category')
 router.register(r'manage/process', ManageProcessViewSet, basename='process-manage')
 router.register(r'manage/form', ManageFormViewSet, basename='form')
 router.register(r'manage/question', ManageQuestionViewSet, basename='question')
-# router.register(r'form-position', FormPositionListViewSet)
 router.register(r'profile', ProfileViewSet)
 router.register(r'process', ProcessListViewSet, basename='process-list')
-router.register(r'processes', ProcessViewSet, basename='response')
 
 
 urlpatterns = [
