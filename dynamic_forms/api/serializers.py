@@ -1,9 +1,7 @@
 from rest_framework import serializers
 from dynamic_forms.models import *
 from django.contrib.auth import authenticate
-from rest_framework_simplejwt.tokens import RefreshToken  
-
-
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -24,13 +22,11 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         return value
 
 
-
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['id', 'owner', 'name']
-        read_only_fields = ['owner',]
-
+        read_only_fields = ['owner', ]
 
 
 class FormSerializer(serializers.ModelSerializer):
@@ -44,8 +40,7 @@ class FormSerializer(serializers.ModelSerializer):
             'category', 'category_name',
             'is_public', 'password'
         ]
-        read_only_fields = ['owner',]
-
+        read_only_fields = ['owner', ]
 
 
 class FormPositionSerializer(serializers.ModelSerializer):
@@ -53,7 +48,6 @@ class FormPositionSerializer(serializers.ModelSerializer):
         model = FormPosition
         fields = ['id', 'process', 'form', 'position']
         # read_only_fields = ['form', 'process']
-
 
 
 class ProcessSerializer(serializers.ModelSerializer):
@@ -65,7 +59,7 @@ class ProcessSerializer(serializers.ModelSerializer):
         model = Process
         fields = [
             'id',
-            'owner', 'owner_username', 
+            'owner', 'owner_username',
             'title',
             'category', 'category_name',
             'forms', 'type',
@@ -82,23 +76,23 @@ class ProcessSerializer(serializers.ModelSerializer):
         for position, form in enumerate(forms):
             process.forms.add(form)
             if process.type == "linear":
-                FormPosition.objects.create(process=process,form=form,position=position+1)
+                FormPosition.objects.create(process=process, form=form, position=position + 1)
         return process
 
-    def update(self, instance:Process, validated_data):
+    def update(self, instance: Process, validated_data):
         instance.title = validated_data.get('title', instance.title)
         instance.category = validated_data.get('category', instance.category)
         instance.password = validated_data.get('password', instance.password)
 
         type = validated_data.get('type', None)
         forms = validated_data.get('forms', None)
-        if type is not None  and  type != instance.type:
+        if type is not None and type != instance.type:
             instance.type = type
             if forms is None:
                 FormPosition.objects.filter(process=instance).delete()
                 if type == "linear":
                     for position, form in enumerate(instance.forms.all()):
-                        FormPosition.objects.create(process=instance,form=form,position=position+1)
+                        FormPosition.objects.create(process=instance, form=form, position=position + 1)
 
         if forms is not None:
             forms = validated_data.pop('forms')
@@ -108,7 +102,7 @@ class ProcessSerializer(serializers.ModelSerializer):
             for position, form in enumerate(forms):
                 instance.forms.add(form)
                 if instance.type == "linear":
-                    FormPosition.objects.create(process=instance,form=form,position=position+1)
+                    FormPosition.objects.create(process=instance, form=form, position=position + 1)
 
         instance.save()
         return instance
@@ -119,16 +113,14 @@ class ProcessSerializer(serializers.ModelSerializer):
         self.fields['forms'].child_relation.queryset = Form.objects.filter(owner=user)
 
 
-
 class QuestionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Question
         fields = ['id', 'form', 'title', 'type', 'extra', 'url']
-        read_only_fields = ['form',]
+        read_only_fields = ['form', ]
         extra_kwargs = {
-            'url': {'view_name':'question-detail'}
+            'url': {'view_name': 'question-detail'}
         }
-
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -184,7 +176,7 @@ class LoginSerializer(serializers.Serializer):
                 raise serializers.ValidationError("Invalid login credentials.")
         else:
             raise serializers.ValidationError("Must provide both username and password.")
-        
+
         data['user'] = user  # Store the authenticated user in the validated data
         return data
 

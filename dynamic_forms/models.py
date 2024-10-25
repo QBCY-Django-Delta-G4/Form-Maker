@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 
-
 class User(AbstractUser):
     pass
 
@@ -16,8 +15,8 @@ class Category(models.Model):
 
 
 class Form(models.Model):
-    owner  = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_forms")
-    title  = models.CharField(max_length=255)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_forms")
+    title = models.CharField(max_length=255)
     category = models.ForeignKey(
         Category, on_delete=models.SET_NULL, null=True,
         related_name="category_forms"
@@ -71,7 +70,7 @@ class Question(models.Model):
 
     form = models.ForeignKey(Form, on_delete=models.CASCADE, related_name='questions')
     title = models.TextField()
-    type  = models.CharField(max_length=10, choices=Question_Type.choices, default=Question_Type.TEXT)
+    type = models.CharField(max_length=10, choices=Question_Type.choices, default=Question_Type.TEXT)
     extra = models.JSONField()
 
     def __str__(self) -> str:
@@ -94,4 +93,3 @@ class WatchFormHistory(models.Model):
 
     def __str__(self) -> str:
         return self.form.title + " - " + self.user.username
-
