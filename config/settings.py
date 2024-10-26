@@ -126,3 +126,6 @@ REST_FRAMEWORK = {
 #         "LOCATION": "unique-snowflake",
 #     }
 # }
+
+
+LOGIN_REDIRECT_URL = '/api/'
