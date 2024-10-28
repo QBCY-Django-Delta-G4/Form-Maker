@@ -15,6 +15,9 @@ ALLOWED_HOSTS = ["*"]
 
 
 INSTALLED_APPS = [
+    'daphne',
+    'channels',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -30,6 +33,13 @@ INSTALLED_APPS = [
     'dynamic_forms',
 ]
 
+ASGI_APPLICATION = 'config.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -39,6 +49,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+
 
 ROOT_URLCONF = 'config.urls'
 
@@ -126,3 +138,6 @@ REST_FRAMEWORK = {
 #         "LOCATION": "unique-snowflake",
 #     }
 # }
+
+
+LOGIN_REDIRECT_URL = '/api/'

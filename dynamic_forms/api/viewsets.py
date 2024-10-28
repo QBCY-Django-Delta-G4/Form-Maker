@@ -9,6 +9,9 @@ from dynamic_forms.models import *
 from .serializers import *
 from django.db.models import Q
 
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+
 
 
 
@@ -196,6 +199,19 @@ class ProcessListViewSet(viewsets.ReadOnlyModelViewSet):
                 ResponseFormHistory.objects.create(
                     user=request.user,
                     form=form
+                )
+
+                answer_data = {
+                    'user': request.user.username,
+                    'response': responses, 
+                }
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    f'form_{form_id}', 
+                    {
+                        'type': 'send_answer',
+                        'answer_data': answer_data
+                    }
                 )
 
                 return response.Response(
