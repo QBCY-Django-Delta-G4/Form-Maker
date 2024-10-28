@@ -96,3 +96,20 @@ class WatchFormHistory(models.Model):
 
     def __str__(self) -> str:
         return self.form.title + " - " + self.user.username
+
+class ResponseFormHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_response_histories')
+    form = models.ForeignKey(Form, on_delete=models.CASCADE, related_name='form_response_histories')
+    answered_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return self.form.title + " - " + self.user.username
+
+
+class WatchProcessHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_watch_process_histories')
+    process = models.ForeignKey(Process, on_delete=models.CASCADE, related_name='process_watch_histories')
+    watched_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return self.process.title + " - " + self.user.username
