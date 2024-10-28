@@ -131,12 +131,19 @@ class ProcessListViewSet(viewsets.ReadOnlyModelViewSet):
 
             responses = request.data.get('response')
             if responses:
-                curr_positoin = request.session.get(f'lst_pos_process_{pk}',0) + 1
-
-                position_instance = get_object_or_404(
-                    FormPosition,Q(process=process_instance)&Q(position=curr_positoin)
-                )
-                form = position_instance.form
+                if process_instance.type == "linear":
+                    curr_positoin = request.session.get(f'lst_pos_process_{pk}',0) + 1
+                    position_instance = get_object_or_404(
+                        FormPosition,Q(process=process_instance)&Q(position=curr_positoin)
+                    )
+                    form = position_instance.form
+                else:
+                    forms = process_instance.forms.all()
+                    try:
+                        form = forms.get(id=form_id)
+                    except:
+                        return response.Response({"detail": "this form-id dose not exist!"}, status=status.HTTP_404_NOT_FOUND)
+        
                 questions = form.questions.all()
 
                 questions_id = [x.id for x in questions]
@@ -177,7 +184,8 @@ class ProcessListViewSet(viewsets.ReadOnlyModelViewSet):
                         request.session[f'lst_pos_process_{pk}'] = 0
                         return response.Response({"detail":"process is finished."}, status=status.HTTP_200_OK)
 
-                request.session[f'lst_pos_process_{pk}'] = curr_pos
+                    request.session[f'lst_pos_process_{pk}'] = curr_pos
+
                 return response.Response(
                     {"detail": "The answers were successfully registered"}, 
                     status=status.HTTP_200_OK
@@ -197,10 +205,15 @@ class ProcessListViewSet(viewsets.ReadOnlyModelViewSet):
 
             if process_instance.type == "linear":
                 form_id = request.session.get(f'lst_pos_process_{pk}',0) + 1
-            print(form_id)
+                curr_position = get_object_or_404(FormPosition,Q(process=process_instance)&Q(position=form_id))
+                form = curr_position.form
+            else:
+                forms = process_instance.forms.all()
+                try:
+                    form = forms.get(id=form_id)
+                except:
+                    return response.Response({"detail": "this form dose not exist!"}, status=status.HTTP_404_NOT_FOUND)
 
-            curr_position = get_object_or_404(FormPosition,Q(process=process_instance)&Q(position=form_id))
-            form = curr_position.form
             questions = form.questions.all()
             serializer = QuestionSerializer(questions, many=True)
 
