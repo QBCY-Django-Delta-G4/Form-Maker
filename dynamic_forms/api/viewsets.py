@@ -104,6 +104,15 @@ class ManageProcessViewSet(viewsets.ModelViewSet): #CRUD
         serializer.save(owner=owner)
 
 
+class CategoryListViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.exclude(owner=self.request.user)
+
+
 
 class ProcessListViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Process.objects.all()

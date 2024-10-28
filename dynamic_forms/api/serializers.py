@@ -22,34 +22,6 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         return value
 
 
-class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Category
-        fields = ['id', 'owner', 'name']
-        read_only_fields = ['owner', ]
-
-
-class FormSerializer(serializers.ModelSerializer):
-    owner_username = serializers.CharField(source='owner.username', read_only=True)
-    category_name = serializers.CharField(source='category.name', read_only=True)
-
-    class Meta:
-        model = Form
-        fields = [
-            'id', 'owner', 'owner_username', 'title',
-            'category', 'category_name',
-            'is_public', 'password'
-        ]
-        read_only_fields = ['owner', ]
-
-
-class FormPositionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FormPosition
-        fields = ['id', 'process', 'form', 'position']
-        # read_only_fields = ['form', 'process']
-
-
 class ProcessListSerializer(serializers.ModelSerializer):
     owner_username = serializers.CharField(source='owner.username', read_only=True)
     category_name = serializers.CharField(source='category.name', read_only=True)
@@ -65,6 +37,32 @@ class ProcessListSerializer(serializers.ModelSerializer):
             'is_public',
         ]
 
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'owner', 'name', 'category_process']
+        read_only_fields = ['owner', ]
+
+
+class FormSerializer(serializers.ModelSerializer):
+    owner_username = serializers.CharField(source='owner.username', read_only=True)
+    category_name = serializers.CharField(source='category.name', read_only=True)
+
+    class Meta:
+        model = Form
+        fields = [
+            'id', 'owner', 'owner_username', 'title',
+            'category', 'category_name'
+        ]
+        read_only_fields = ['owner',]
+
+
+class FormPositionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FormPosition
+        fields = ['id', 'process', 'form', 'position']
+        # read_only_fields = ['form', 'process']
 
 
 class ProcessSerializer(serializers.ModelSerializer):
