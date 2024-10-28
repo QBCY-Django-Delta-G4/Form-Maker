@@ -110,6 +110,14 @@ class ProcessListViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         return self.queryset.exclude(owner=self.request.user)
 
+    # def retrieve(self, request, pk=None):
+    #     process = self.get_object()
+    #     user = request.user
+    #     WatchProcessHistory.objects.create(user=user, process=process)
+    #     serializer = self.get_serializer(process)
+    #     print(serializer)
+    #     return Response(serializer.data)
+
     @action(detail=True, methods=['GET','POST'], url_path='answer(?:/(?P<form_id>[^/.]+))?')
     def answer(self, request:HttpRequest, pk=None, form_id=None):
         process_instance = self.get_object()
@@ -186,6 +194,11 @@ class ProcessListViewSet(viewsets.ReadOnlyModelViewSet):
 
                     request.session[f'lst_pos_process_{pk}'] = curr_pos
 
+                ResponseFormHistory.objects.create(
+                    user=request.user,
+                    form=form
+                )
+
                 return response.Response(
                     {"detail": "The answers were successfully registered"}, 
                     status=status.HTTP_200_OK
@@ -216,6 +229,11 @@ class ProcessListViewSet(viewsets.ReadOnlyModelViewSet):
 
             questions = form.questions.all()
             serializer = QuestionSerializer(questions, many=True)
+
+            WatchFormHistory.objects.create(
+                user=request.user,
+                form=form
+            )
 
             return response.Response(serializer.data, status=status.HTTP_200_OK)
 
