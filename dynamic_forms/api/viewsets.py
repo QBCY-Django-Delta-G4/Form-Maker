@@ -110,13 +110,12 @@ class ProcessListViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         return self.queryset.exclude(owner=self.request.user)
 
-    # def retrieve(self, request, pk=None):
-    #     process = self.get_object()
-    #     user = request.user
-    #     WatchProcessHistory.objects.create(user=user, process=process)
-    #     serializer = self.get_serializer(process)
-    #     print(serializer)
-    #     return Response(serializer.data)
+    def retrieve(self, request, pk=None):
+        process = self.get_object()
+        user = request.user
+        WatchProcessHistory.objects.create(user=user, process=process)
+        serializer = self.get_serializer(process)
+        return response.Response(serializer.data)
 
     @action(detail=True, methods=['GET','POST'], url_path='answer(?:/(?P<form_id>[^/.]+))?')
     def answer(self, request:HttpRequest, pk=None, form_id=None):
