@@ -21,10 +21,6 @@ class Form(models.Model):
         Category, on_delete=models.SET_NULL, null=True,
         related_name="category_forms"
     )
-    password = models.CharField(max_length=255, null=True, blank=True)
-
-    def is_public(self):
-        return self.password is None or self.password == ""
 
     def __str__(self) -> str:
         return self.title + " - " + self.owner.username
