@@ -1,0 +1,31 @@
+version: '3.9'
+
+services:
+  database:
+    image: docker.arvancloud.ir/postgres:latest
+    restart: always
+    volumes:
+      - config_db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: "Admin@1234"
+      POSTGRES_USER: "admin"
+      POSTGRES_DB: "form_builder"
+
+  app:
+    build: .
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --no-input --clear &&
+             daphne -b 0.0.0.0 -p 8000 config.asgi:application"
+
+    volumes:
+      - .:/usr/src/app/
+    depends_on:
+      - database
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+
+volumes:
+  config_db:
