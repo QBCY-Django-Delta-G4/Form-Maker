@@ -242,3 +242,21 @@ class LoginSerializer(serializers.Serializer):
             'refresh': str(refresh),
             'access': str(refresh.access_token),
         }
+
+
+class ReportSerializer(serializers.Serializer):
+    category_count = serializers.IntegerField()
+    process_count = serializers.IntegerField()
+    form_count = serializers.IntegerField()
+    watch_processes = serializers.IntegerField()
+    watch_forms = serializers.IntegerField()
+    response_forms = serializers.IntegerField()
+
+
+class FormReportSerializer(serializers.Serializer):
+    watch_count = serializers.IntegerField()
+    response_count = serializers.IntegerField()
+
+
+class ProcessReportSerializer(serializers.Serializer):
+    watch_count = serializers.IntegerField()
