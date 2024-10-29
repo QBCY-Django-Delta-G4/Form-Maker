@@ -1,7 +1,7 @@
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status, mixins
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.decorators import action
 from rest_framework import response
@@ -84,6 +84,30 @@ class ManageFormViewSet(viewsets.ModelViewSet): #CRUD
         serializer = QuestionSerializer(questions, many=True, context={'request': request})
         return response.Response(serializer.data)
 
+    @action(detail=True, methods=['GET'])
+    def report(self, request, pk=None):
+        form = self.get_object()
+        watch_count = WatchFormHistory.objects.filter(form=form).count()
+        response_count = ResponseFormHistory.objects.filter(form=form).count()
+
+        serializer = FormReportSerializer(
+            data={
+                "watch_count":watch_count,
+                "response_count":response_count
+            }
+        )
+        serializer.is_valid(raise_exception=True)
+        return response.Response(serializer.data)
+
+    @action(detail=True, methods=['GET'])
+    def responses(self, request, pk=None):
+        form = self.get_object()
+        responses = Response.objects.filter(question__form=form)
+
+        serializer = ResopnseSerializer(responses, many=True)
+        # serializer.is_valid(raise_exception=True)
+        return response.Response(serializer.data)
+
 
 
 class ManageProcessViewSet(viewsets.ModelViewSet): #CRUD
@@ -102,6 +126,19 @@ class ManageProcessViewSet(viewsets.ModelViewSet): #CRUD
     def perform_create(self, serializer):
         owner = self.request.user
         serializer.save(owner=owner)
+
+    @action(detail=True, methods=['GET'])
+    def report(self, request, pk=None):
+        process = self.get_object()
+        watch_count = WatchProcessHistory.objects.filter(process=process).count()
+
+        serializer = ProcessReportSerializer(
+            data={
+                "watch_count":watch_count
+            }
+        )
+        serializer.is_valid(raise_exception=True)
+        return response.Response(serializer.data)
 
 
 class CategoryListViewSet(viewsets.ReadOnlyModelViewSet):
@@ -289,3 +326,62 @@ class ManageCategoryViewSet(viewsets.ModelViewSet):
             raise PermissionDenied("You do not have permission to delete this category.")
         instance.delete()
 
+
+from django.utils import timezone
+from datetime import timedelta
+class ReportViewSet(
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
+    permission_classes = [IsAdminUser]
+
+    @action(detail=False, methods=['GET'])
+    def weekly_report(self, request):
+        start_date = timezone.now() - timedelta(weeks=1)
+        watch_processes = WatchProcessHistory.objects.filter(watched_at__gte=start_date).count()
+        watch_forms = WatchFormHistory.objects.filter(watched_at__gte=start_date).count()
+        response_forms = ResponseFormHistory.objects.filter(answered_at__gte=start_date).count()
+
+        category_count = Category.objects.all().count()
+        process_count = Process.objects.all().count()
+        form_count = Form.objects.all().count()
+
+        serializer = ReportSerializer(
+            data={
+                "watch_processes":watch_processes,
+                "watch_forms":watch_forms,
+                "response_forms":response_forms,
+                "category_count":category_count,
+                "process_count":process_count,
+                "form_count":form_count,
+            }
+        )
+        serializer.is_valid(raise_exception=True)
+        return response.Response(serializer.data)
+
+    @action(detail=False, methods=['GET'])
+    def monthly_report(self, request):
+        start_date = timezone.now() - timedelta(days=30)
+        watch_processes = WatchProcessHistory.objects.filter(watched_at__gte=start_date).count()
+        watch_forms = WatchFormHistory.objects.filter(watched_at__gte=start_date).count()
+        response_forms = ResponseFormHistory.objects.filter(answered_at__gte=start_date).count()
+
+        category_count = Category.objects.all().count()
+        process_count = Process.objects.all().count()
+        form_count = Form.objects.all().count()
+
+        serializer = ReportSerializer(
+            data={
+                "watch_processes":watch_processes,
+                "watch_forms":watch_forms,
+                "response_forms":response_forms,
+                "category_count":category_count,
+                "process_count":process_count,
+                "form_count":form_count,
+            }
+        )
+        serializer.is_valid(raise_exception=True)
+        return response.Response(serializer.data)
+
+    def list(self, request):
+        return response.Response({"detail":"chose period to show report."})

@@ -12,6 +12,7 @@ router.register(r'manage/question', ManageQuestionViewSet, basename='question')
 router.register(r'profile', ProfileViewSet)
 router.register(r'process', ProcessListViewSet, basename='process-list')
 router.register(r'category', CategoryListViewSet, basename='category-list')
+router.register(r'report', ReportViewSet, basename='report-list')
 
 
 urlpatterns = [
