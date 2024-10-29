@@ -159,7 +159,8 @@ class QuestionSerializer(serializers.ModelSerializer):
 class ResopnseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Response
-        fields = ['id', 'question', 'answer']
+        fields = ['id', 'user', 'question', 'answer']
+        read_only_fields = ['user', ]
 
     def validate(self, data):
         question = data['question']

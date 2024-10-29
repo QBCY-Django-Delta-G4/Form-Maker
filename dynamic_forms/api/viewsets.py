@@ -99,6 +99,15 @@ class ManageFormViewSet(viewsets.ModelViewSet): #CRUD
         serializer.is_valid(raise_exception=True)
         return response.Response(serializer.data)
 
+    @action(detail=True, methods=['GET'])
+    def responses(self, request, pk=None):
+        form = self.get_object()
+        responses = Response.objects.filter(question__form=form)
+
+        serializer = ResopnseSerializer(responses, many=True)
+        # serializer.is_valid(raise_exception=True)
+        return response.Response(serializer.data)
+
 
 
 class ManageProcessViewSet(viewsets.ModelViewSet): #CRUD
